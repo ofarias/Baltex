@@ -1,36 +1,22 @@
 <?php
-
-/*Clase para acceder a datos*/
-    abstract class database{
+    abstract class databaseCxC{
     	private static $usr = "SYSDBA";
 		private static $pwd = "masterkey";
 		private $cnx;
 		protected $query;
-		//private $host = "C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
-		private $host = "C:\\BD\\Baltex\\SAE70EMPRE01.FDB";
-		#Abre la conexión a la base de datos
+		
 		private function AbreCnx(){
-			if($_SESSION['emp'] == 1){
-				//$host="C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
-				$host="baltex.dyndns.org:C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
-			}elseif($_SESSION['emp'] == 2){
-				//$host="C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa02\\Datos\\SAE70EMPRE02.FDB";
-				$host="baltex.dyndns.org:C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa02\\Datos\\SAE70EMPRE02.FDB";
-			}
+			$host = "C:\\xampp\\htdocs\\baltex.FDB";
 			$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
 		}		
-		#Cierra la conexion a la base de datos
+		
 		private function CierraCnx(){
 			ibase_close($this->cnx);
 		}
-		#Ejecuta un query simple del tipo INSERT, DELETE, UPDATE
+
 		protected function EjecutaQuerySimple(){
 			$this->AbreCnx();
 			$rs = ibase_query($this->cnx, $this->query);
-			//print_r($rs);
-			//echo $this->query;
-			//$rows =ibase_affected_rows();
-			//echo 'Numero de lineas afctadas: '.$rows.'<br/>';
 			return $rs;
 			unset($this->query);
 			$this->CierraCnx();
@@ -46,7 +32,6 @@
 			return $rows;
 		}
 
-		#Obtiene la cantidad de filas afectadas en BD
 		function NumRows($result){
 		if(!is_resource($result)) return false;
 		return ibase_fetch_row($result);
@@ -62,7 +47,6 @@
 			$this->CierraCnx();
 		}
 
-		#Ejecuta query de tipo SELECT
 		protected function QueryObtieneDatos(){
 			$this->AbreCnx();
 			$rs = ibase_query($this->cnx, $this->query);
@@ -73,11 +57,8 @@
 		
 		protected function QueryObtieneDatosN(){
 			$this->AbreCnx();
-			//echo $this->query;
 			$rs = ibase_query($this->cnx, $this->query);
 			return $rs;
-			//var_dump($rs);	
-			//echo $this->query;	
 			unset($this->query);	
 			$this->CierraCnx();
 		}
@@ -88,7 +69,6 @@
 			while($row = ibase_fetch_object($rs)){
 				$row->CLAVE = htmlentities(stripcslashes($row->CLAVE));
 				$row->NOMBRE = htmlentities(stripcslashes($row->NOMBRE));
-				//$row_set[] = $row->CLAVE;
 				$row_set[] = $row->CLAVE." : ".$row->NOMBRE;
 			}
 			return $row_set;
@@ -104,7 +84,6 @@
 				$row->NOMBRE = htmlentities(stripcslashes($row->NOMBRE));
 				$row->COSTO_VENTAS = htmlentities(stripcslashes($row->COSTO_VENTAS));
 				$row->PROVEEDOR = htmlentities(stripcslashes($row->PROVEEDOR));
-				//$row_set[] = $row->CLAVE;
 				$row_set[] = $row->CLAVE." : ".$row->NOMBRE." COSTO: ".$row->COSTO_VENTAS;
 			}
 			return $row_set;
@@ -119,7 +98,6 @@
 			while($row = ibase_fetch_object($rs)){
 				$row->CVE_ART = htmlentities(stripcslashes($row->CVE_ART));
 				$row->DESCR = htmlentities(stripcslashes(utf8_decode($row->DESCR)));
-				//$row_set[] = $row->CLAVE;
 				$row_set[] = $row->CVE_ART." : ".$row->DESCR;
 			}
 			return $row_set;
@@ -140,8 +118,6 @@
 			$this->CierraCnx();
 		}		
 	
-		#Regresa arreglo de datos asociativo, para mejor manejo de la informacion
-		#Comprueba si es un recurso el cual se compone de 
 		function FetchAs($result){
 			if(!is_resource($result)) return false;
 				return ibase_fetch_object($result); //cambio de fetch_assoc por fetch_row

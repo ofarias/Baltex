@@ -651,5 +651,104 @@ class pegaso extends database{
     	return $data;
     }
 
+    function datos($ctrlFacF1, $ctrlFacF2,$ctrlFacD1,$ctrlFacD2){
+    	/// SE PUEDE UTILIZAR CVE_AUT O REF_SIST PARA CONTROLAR la sincronizacion.
+    	$cuenM=array();$cuenD=array();$facturas=array();$notas=array();$conceptos=array();$folio=array();
+    	$tablas=["cuenM"=>"CUEN_M0", "cuenD"=>"CUEN_DET0", "facturas"=>"FACTF0", "notas"=>"FACTD0", "conceptos"=>"CONM0"];
+    	foreach($tablas as $key => $value){
+    		$param='';$param2='';
+    		for ($i=1; $i <3 ; $i++) { 
+	    		switch ($value) {
+	    			case 'CUEN_M0':
+	    				$campo = 'CVE_AUT';
+	    				$param = ' where CVE_AUT IS NULL';
+	    				$param2 = ' where CVE_CLIE is not null ';
+	    				break;
+	    			case 'CUEN_DET0':
+	    				$campo = 'CTLPOL';
+	    				$param = ' where CTLPOL is null ';
+	    				$param2 = ' where CVE_CLIE is not null ';
+	    				break;
+	    			case 'FACTF0':
+	    				$campo = 'DAT_MOSTR';
+	    				$param = " where DAT_MOSTR > ".${"ctrlFacF".$i};
+	    				$param2 = ' where cve_clpv is not null';
+	    				break;
+	    			case 'FACTD0':
+	    				$campo = 'CVE_BITA';
+	    				$param = " where CVE_BITA > ".${"ctrlFacD".$i};
+	    				$param2 = ' where cve_clpv is not null ';
+	    				break;
+	    			case 'CONM0':
+	    				$campo = '';
+	    				$param = '';
+	    				break;
+	    			default:
+	    				// code...
+	    				break;
+	    		}
+	    		$_SESSION['emp']=$i;
+	    		$tabla = $value.$i;
+		    	$this->query="SELECT c.* FROM $tabla c  $param";
+			    $res=$this->EjecutaQuerySimple();
+		    	while($tsArray=ibase_fetch_object($res)){
+		    		$$key[]=$tsArray;
+		    	}
+		    	if(!empty($param2)){
+			    	$this->query="SELECT COALESCE(MAX($campo), 0) as f_sinc FROM $tabla $param2";
+			    	//echo '<br/>'.$this->query;
+			    	$res=$this->EjecutaQuerySimple();
+			    	$row=ibase_fetch_object($res);
+			    	$folio = $row->F_SINC;
+		    	}
+	    	}
+    	}
+    	return array("CuenM"=>$cuenM, "CuenD"=>$cuenD, "Facturas"=>$facturas, "Notas"=>$notas, "conceptos"=>$conceptos, "folios"=>$folio);
+    }
 
+    function clientes($opc){
+    	$data=array(); $param=''; 
+    	$opc = substr($opc, 1);
+    	@$opc = explode(":", $opc);
+    	if(count($opc)>1){
+    		if(!empty($opc[0])){ /// Cliente
+    			$param .= " and cliente = '".$opc[0]."'";
+    		}
+    		if(!empty($opc[1])){ /// Vendedor
+    			$param .= " and vendedor = '".$opc[1]."'";
+    		}
+    		if(!empty($opc[2])){ /// Fecha inicial
+    			$param .= " and fecha_doc >= '".$opc[2]."'";
+    		}
+    		if(!empty($opc[3])){ /// Fecha Final
+    			$param .= " and fecha_doc <= '".$opc[3]."'";
+    		}
+    		if($opc[4]!=3){ /// Empresa
+    			$param .= " and empresa = '".$opc[4]."'";
+    		}
+    	}
+    	echo $param;
+    	for ($i=1; $i <3 ; $i++) { 
+    		$_SESSION['emp']=$i;
+	    	//$tabla = $value.$i;
+	    	$this->query="SELECT ID_CLIENTE, MAX(CLIENTE) as cliente, sum(SALDO) as saldo, COUNT(DOCUMENTO) AS documentos, min(fecha_doc) as fmin, max(fecha_doc) as fmax, min(empresa) AS empresa, (select max(diascred) from clie0$i cl where cl.clave = id_cliente) as diascred, cast(list(DISTINCT vendedor) as varchar(500)) AS VENDEDOR FROM FACTURAS_SALDO where id_cliente is not null $param group BY ID_CLIENTE";
+    		$res=$this->EjecutaQuerySimple();
+    		while($tsArray=ibase_fetch_object($res)){
+    			$data[]=$tsArray;
+    		}
+    	}
+    	return $data;
+    }
+
+    function documentos(){
+    	for ($i=1; $i <3 ; $i++) { 
+    		$_SESSION['emp']=$i;
+	    	$this->query="SELECT * FROM FACTURAS_PENDIENTES WHERE SALDO >= 2 AND STATUS != 'C'";
+    		$res=$this->EjecutaQuerySimple();
+    		while($tsArray=ibase_fetch_object($res)){
+    			$data[]=$tsArray;
+    		}
+    	}
+    	return $data;	
+    }
 }?>
