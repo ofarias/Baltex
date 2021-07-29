@@ -783,15 +783,6 @@ class pegaso extends database{
 	        while($tsArray=ibase_fetch_object($result)){
 	        	$res[]=utf8_decode($tsArray->CLIENTE);
 	        }
-
-	        //$_SESSION['emp']=2;
-	        //$this->query = "SELECT CLIENTE, ID_CLIENTE FROM FACTURAS_SALDO 
-	        //                WHERE (CLIENTE||' '|| ID_CLIENTE) CONTAINING '$cliente' group by CLIENTE, ID_CLIENTE";
-	        //$result = $this->devuelveAutoClie();
-	        //while($tsArray=ibase_fetch_object($result)){
-	        //	$res[]=$tsArray->CLIENTE;
-	        //}
-	        //var_dump($res);
 	    }
         return $res;
     }
@@ -809,5 +800,29 @@ class pegaso extends database{
 	    }
         return $res;
     }
+
+	function kpi($opc){
+		$data=array();
+		$opc = substr($opc, 1);
+    	@$opc = explode(":", $opc);
+    	if(count($opc)>1){
+    		if(!empty($opc[0])){ $param .= " and cliente = '".$opc[0]."'";}///cliente
+    		if(!empty($opc[1])){ $param .= " and vendedor = '".$opc[1]."'";}/// Vendedor
+    		if(!empty($opc[2])){ $param .= " and fecha_ven  >= '".$opc[2]."'";}/// Fecha inicial
+    		if(!empty($opc[3])){ $param .= " and fecha_ven <= '".$opc[3]."'";}/// Fecha Final
+    		if($opc[4]!=3){ $param .= " and empresa = '".$opc[4]."'";}/// Empresa
+    		if(isset($opc[5])){
+    			$doctos='';
+    			$docs = explode(",",$opc[5]);
+    			print_r($docs);
+    			for ($i=0; $i < count($docs) ; $i++) { 
+    				$doctos .= "'".$docs[$i]."', ";
+    			}
+    			$doctos = substr($doctos, 0, strlen($doctos)-2);
+    			$param = " and documento in (".$doctos.")";
+    		}
+    	}
+
+	}
 
 }?>

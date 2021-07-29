@@ -364,5 +364,23 @@ class controllerCxC{
             return array("status"=>'ok',"nombre"=>$nom, "ruta"=>$ruta, "completa"=>'..\\..\\Reportes_cxc\\'.$nom, "tipo"=>'x');
 	}
 	
+    function kpi($opc){
+        if($_SESSION['user']){
+			//$data= new modelCxC;
+			$sae = new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/pages/CxC/p.kpiCxC.php');
+			ob_start();
+			$kpi=$sae->kpi($opc);
+			include 'app/views/pages/CxC/p.kpiCxC.php';
+			$table=ob_get_clean();
+			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}		
+    }
+
 }?>
 
