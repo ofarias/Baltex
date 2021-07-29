@@ -1,10 +1,9 @@
 /* Global Styles */
 
 /* ------------------------------- */
-
 body {
     padding-top: 100px;
-    background-color: #7C63AF;
+    background-color: #D5C7F2;
 }
 
 @media(min-width:768px) {

@@ -727,7 +727,7 @@ class pegaso extends database{
     			$param .= " and empresa = '".$opc[4]."'";
     		}
     	}
-    	echo $param;
+    	//echo $param;
     	for ($i=1; $i <3 ; $i++) { 
     		$_SESSION['emp']=$i;
 	    	//$tabla = $value.$i;
@@ -740,10 +740,31 @@ class pegaso extends database{
     	return $data;
     }
 
-    function documentos(){
+    function documentos($opc){
+    	$data=array();$param='';
+    	$opc = substr($opc, 1);
+    	@$opc = explode(":", $opc);
+    	if(count($opc)>1){
+    		if(!empty($opc[0])){ $param .= " and cliente = '".$opc[0]."'";}///cliente
+    		if(!empty($opc[1])){ $param .= " and vendedor = '".$opc[1]."'";}/// Vendedor
+    		if(!empty($opc[2])){ $param .= " and fecha_ven  >= '".$opc[2]."'";}/// Fecha inicial
+    		if(!empty($opc[3])){ $param .= " and fecha_ven <= '".$opc[3]."'";}/// Fecha Final
+    		if($opc[4]!=3){ $param .= " and empresa = '".$opc[4]."'";}/// Empresa
+    		if(isset($opc[5])){
+    			$doctos='';
+    			$docs = explode(",",$opc[5]);
+    			print_r($docs);
+    			for ($i=0; $i < count($docs) ; $i++) { 
+    				$doctos .= "'".$docs[$i]."', ";
+    			}
+    			$doctos = substr($doctos, 0, strlen($doctos)-2);
+    			$param = " and documento in (".$doctos.")";
+    		}
+    	}
+    	
     	for ($i=1; $i <3 ; $i++) { 
     		$_SESSION['emp']=$i;
-	    	$this->query="SELECT * FROM FACTURAS_PENDIENTES WHERE SALDO >= 2 AND STATUS != 'C'";
+	    	$this->query="SELECT * FROM FACTURAS_PENDIENTES WHERE SALDO >= 2 AND STATUS != 'C' $param";
     		$res=$this->EjecutaQuerySimple();
     		while($tsArray=ibase_fetch_object($res)){
     			$data[]=$tsArray;
@@ -751,4 +772,42 @@ class pegaso extends database{
     	}
     	return $data;	
     }
+
+    function clientesAuto($cliente){
+    	$res=array();
+    	for ($i=1; $i <3 ; $i++) { 
+    		$_SESSION['emp']=$i;
+	        $this->query = "SELECT CLIENTE, ID_CLIENTE FROM FACTURAS_SALDO 
+	                        WHERE (CLIENTE||' '|| ID_CLIENTE) CONTAINING '$cliente' group by CLIENTE, ID_CLIENTE";
+	        $result = $this->devuelveAutoClie();
+	        while($tsArray=ibase_fetch_object($result)){
+	        	$res[]=utf8_decode($tsArray->CLIENTE);
+	        }
+
+	        //$_SESSION['emp']=2;
+	        //$this->query = "SELECT CLIENTE, ID_CLIENTE FROM FACTURAS_SALDO 
+	        //                WHERE (CLIENTE||' '|| ID_CLIENTE) CONTAINING '$cliente' group by CLIENTE, ID_CLIENTE";
+	        //$result = $this->devuelveAutoClie();
+	        //while($tsArray=ibase_fetch_object($result)){
+	        //	$res[]=$tsArray->CLIENTE;
+	        //}
+	        //var_dump($res);
+	    }
+        return $res;
+    }
+
+	function vendedoresAuto($vendedor){
+		$res=array();
+		for ($i=1; $i <3 ; $i++) { 
+    		$_SESSION['emp']=$i;
+	        $this->query = "SELECT ID_VENDEDOR, vendedor FROM FACTURAS_SALDO 
+	                        WHERE (VENDEDOR||' '|| ID_VENDEDOR ) CONTAINING '$vendedor' group by ID_VENDEDOR, VENDEDOR";
+	        $result = $this->devuelveAutoVend();
+	        while($tsArray=ibase_fetch_object($result)){
+	        	$res[]=$tsArray->VENDEDOR;
+	        }
+	    }
+        return $res;
+    }
+
 }?>

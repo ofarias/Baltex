@@ -42,9 +42,9 @@
                                 <th>CLAVE</th>
                                 <th>NOMBRE </th>
                                 <th>SALDO</th>
-                                <th>DOCUMENTOS <br/> (pendientes de pago)</th>
-                                <th>DOC + Antiguo <br/> DOC + Reciente</th>
-                                <th>DIAS DE CREDITO <br/>(Actual)</th>
+                                <th>DOCUMENTOS <br/> (PENDIENTES DE PAGO)</th>
+                                <th>DOC +   ANTIGUO <br/> DOC + RECIENTES</th>
+                                <th>DIAS DE CREDITO <br/>(ACTUAL)</th>
                                 <th>VENDEDOR</th>
                                 <th>EMPRESA</th>
                             </tr>
@@ -86,6 +86,20 @@
 <script>
 
 const opc = <?php echo "'".$opc."'"?>
+
+$(".cle").autocomplete({
+    source: "index.cxc.php?cliente=1",
+    minLength: 2,
+    select: function(event, ui){
+    }
+})
+
+$(".vnd").autocomplete({
+    source: "index.cxc.php?vendedor=1",
+    minLength: 2,
+    select: function(event, ui){
+    }
+})
 
 $(".filtrar").click(function (){
     const cle = $(".cle").val()

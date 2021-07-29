@@ -75,13 +75,13 @@ class controllerCxC{
 				case 'd':
 					$this->documentos(substr($opc,1));
 					break;
-
 				case 'x':
 					$res=$this->clientesXls(substr($opc,1));
 					return $res;
 					break;
 				case 'y':
-					$this->documentosXls(substr($opc,1));
+					$res=$this->documentosXls(substr($opc,1));
+					return $res;
 					break;				
 				default:
 					$pagina = $this->load_template('Menu Admin');			
@@ -125,7 +125,7 @@ class controllerCxC{
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/pages/CxC/p.documentosCxC.php');
 			ob_start();
-			$documentos=$sae->documentos();
+			$documentos=$sae->documentos($opc);
 			include 'app/views/pages/CxC/p.documentosCxC.php';
 			$table=ob_get_clean();
 			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
@@ -134,6 +134,19 @@ class controllerCxC{
 			$e = "Favor de Revisar sus datos";
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}		
+	}
+
+
+	function clientesAuto($cliente){
+		$data = new pegaso;
+        $exec = $data->clientesAuto($cliente);
+        return $exec;
+	}
+
+	function vendedoresAuto($vendedor){
+		$data = new pegaso;
+        $exec = $data->vendedoresAuto($vendedor);
+        return $exec;
 	}
 
 	function clientesXls($opc){
@@ -242,7 +255,113 @@ class controllerCxC{
 	}
 
 	function documentosXls($opc){
+		$xls= new PHPExcel();
+        $sae = new pegaso;
+        $info= $sae->documentos($opc);
+        $col='A';$ln=9; $i=0;$total=0;
+        	foreach ($info as $k) {$total += $k->SALDO;}
+            foreach ($info as $row) {
+                $i++;$ln++;
+                $xls->setActiveSheetIndex()
+                        ->setCellValue($col.$ln,$row->ID_CLIENTE)
+                        ->setCellValue(++$col.$ln,utf8_encode($row->CLIENTE))
+                        ->setCellValue(++$col.$ln,$row->DOCUMENTO)
+                        ->setCellValue(++$col.$ln,$row->DIAS_VENCIDO)
+                        ->setCellValue(++$col.$ln,substr($row->FECHA_DOCUMENTO,0 ,10))
+                        ->setCellValue(++$col.$ln,substr($row->FECHA_VEN,0 ,10))
+                        ->setCellValue(++$col.$ln,$row->TOTAL)
+                        ->setCellValue(++$col.$ln,$row->CARGOS)
+						->setCellValue(++$col.$ln,$row->PAGOS)
+                        ->setCellValue(++$col.$ln,$row->SALDO)
+                        ->setCellValue(++$col.$ln,$row->VENDEDOR)
+                        ->setCellValue(++$col.$ln,$row->EMPRESA)
+                ;
+            	$col="A";
+            }
 
+            $col="A";
+            $ln = 9;
+            $xls->setActiveSheetIndex()
+            	->setCellValue($col.$ln,   'Clave')
+            	->setCellValue(++$col.$ln, 'Nombre')
+            	->setCellValue(++$col.$ln, 'Documento')
+            	->setCellValue(++$col.$ln, 'Dias Vencimiento')
+            	->setCellValue(++$col.$ln, 'Fecha Documento')
+            	->setCellValue(++$col.$ln, 'Fecha Vencimiento')
+            	->setCellValue(++$col.$ln, 'Importe')
+            	->setCellValue(++$col.$ln, 'Cargos')
+            	->setCellValue(++$col.$ln, 'Abonos')
+            	->setCellValue(++$col.$ln, 'Saldo')
+            	->setCellValue(++$col.$ln, 'Vendedor')
+            	->setCellValue(++$col.$ln, 'Empresa')
+            ;
+            
+            $xls->setActiveSheetIndex()
+                ->setCellValue('A1', "GRUPO BALTEX")
+                ->setCellValue('A2', "Reporte Documentos pendientes de Pago")
+                ->setCellValue('A3', "Fecha de Elaboracion: ")
+                ->setCellValue('B3', date("d-m-Y H:i:s" ) )
+                ->setCellValue('A4', "Total Documentos:")
+                ->setCellValue('B4', count($info))
+                ->setCellValue('A5', "Total Saldo:")
+                ->setCellValue('B5', number_format($total,2))
+            ;
+            /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+            $col = 'A';
+            $xls->getActiveSheet()->getColumnDimension($col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(40);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(30);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+
+            /// Unir celdas
+            $xls->getActiveSheet()->mergeCells('A1:L1');
+            // Alineando
+            $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+            /// Estilando
+            $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+                array('font' => array(
+                        'size'=>20,
+                    )
+                )
+            );
+            //$xls->getActiveSheet()->getStyle('I10:I102')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+            //$xls->getActiveSheet()->mergeCells('A3:F3');
+            $xls->getActiveSheet()->getStyle('D3')->applyFromArray(
+                array('font' => array(
+                        'size'=>15,
+                    )
+                )
+            );
+            $xls->getActiveSheet()->getStyle("A9:L9")->applyFromArray(
+            	array(
+                    'font'=> array(
+                        'bold'=>true
+                    ),
+                    'borders'=>array(
+                        'allborders'=>array(
+                            'style'=>PHPExcel_Style_Border::BORDER_THIN
+                        )
+                    ), 
+                    'fill'=>array( 
+                            'type' => PHPExcel_Style_Fill::FILL_SOLID,             
+                            'color'=> array('rgb' => '939AB2' )
+                    )   
+                )
+            );
+
+            $ruta='C:\\xampp\\htdocs\\Reportes_cxc\\';
+            if(!file_exists($ruta) ){mkdir($ruta);}
+            $nom='Reporte de Documentos '.date("d-m-Y H_i_s").'.xlsx';
+            $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+            $x->save($ruta.$nom);
+            ob_end_clean();
+            return array("status"=>'ok',"nombre"=>$nom, "ruta"=>$ruta, "completa"=>'..\\..\\Reportes_cxc\\'.$nom, "tipo"=>'x');
 	}
 	
 }?>

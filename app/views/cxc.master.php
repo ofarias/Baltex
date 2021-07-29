@@ -18,7 +18,9 @@
     <!-- DataTables CSS -->
     <link href="app/views/bower_components/datatables/media/css/dataTables.bootstrap.css" rel="stylesheet">
     <!-- Custom CSS -->
-    <link href="app/views/dist/css/pegaso.css" rel="stylesheet">
+    
+    <link href="app/views/dist/css/baltexcxc.css" rel="stylesheet">
+    
     <!--<link href="app/views/dist/css/datosprov.css" rel="stylesheet">-->
     <!--confim-->
     <link href="app/views/dist/confirm/css/jquery-confirm.css" rel="stylesheet" />

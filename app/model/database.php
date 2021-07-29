@@ -27,10 +27,6 @@
 		protected function EjecutaQuerySimple(){
 			$this->AbreCnx();
 			$rs = ibase_query($this->cnx, $this->query);
-			//print_r($rs);
-			//echo $this->query;
-			//$rows =ibase_affected_rows();
-			//echo 'Numero de lineas afctadas: '.$rows.'<br/>';
 			return $rs;
 			unset($this->query);
 			$this->CierraCnx();
@@ -73,11 +69,8 @@
 		
 		protected function QueryObtieneDatosN(){
 			$this->AbreCnx();
-			//echo $this->query;
 			$rs = ibase_query($this->cnx, $this->query);
 			return $rs;
-			//var_dump($rs);	
-			//echo $this->query;	
 			unset($this->query);	
 			$this->CierraCnx();
 		}
@@ -139,6 +132,22 @@
 			unset($this->query);	
 			$this->CierraCnx();
 		}		
+
+		protected function devuelveAutoClie(){
+			$this->AbreCnx();
+			$rs = ibase_query($this->cnx, $this->query);
+			$this->CierraCnx();
+			unset($this->query);	
+			return $rs;		
+		}
+
+		protected function devuelveAutoVend(){
+			$this->AbreCnx();
+			$rs = ibase_query($this->cnx, $this->query);
+			unset($this->query);	
+			$this->CierraCnx();
+			return $rs;
+		}
 	
 		#Regresa arreglo de datos asociativo, para mejor manejo de la informacion
 		#Comprueba si es un recurso el cual se compone de 
