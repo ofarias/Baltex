@@ -83,6 +83,10 @@ class controllerCxC{
 					$res=$this->documentosXls(substr($opc,1));
 					return $res;
 					break;				
+                case 'k':
+                    $res=$this->kpiCxC(substr($opc,1));
+                    return $res;
+                    break;				
 				default:
 					$pagina = $this->load_template('Menu Admin');			
 					$html = $this->load_page('app/views/pages/CxC/p.menuCxC.php');
@@ -135,7 +139,6 @@ class controllerCxC{
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}		
 	}
-
 
 	function clientesAuto($cliente){
 		$data = new pegaso;
@@ -364,15 +367,27 @@ class controllerCxC{
             return array("status"=>'ok',"nombre"=>$nom, "ruta"=>$ruta, "completa"=>'..\\..\\Reportes_cxc\\'.$nom, "tipo"=>'x');
 	}
 	
-    function kpi($opc){
+    function kpiCxC($opc){
         if($_SESSION['user']){
 			//$data= new modelCxC;
 			$sae = new pegaso;
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/pages/CxC/p.kpiCxC.php');
 			ob_start();
-			$kpi=$sae->kpi($opc);
-			include 'app/views/pages/CxC/p.kpiCxC.php';
+            if(strlen($opc) >2){
+                $fi = '01.01.2000';
+                $ff = date("d.m.Y");
+                $anio = date("Y");
+            }else{
+                $fi = '01.01.2000';
+                $ff = date("d.m.Y");
+                $anio = date("Y");
+            }
+            $gen=$sae->kpi_h();
+            $kpi=$sae->kpi($opc);
+            $info = $kpi['datos'];
+            
+            include 'app/views/pages/CxC/p.kpiCxC.php';
 			$table=ob_get_clean();
 			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
 			$this-> view_page($pagina);

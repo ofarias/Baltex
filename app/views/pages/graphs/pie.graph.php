@@ -1,6 +1,7 @@
 <?php // content="text/plain; charset=utf-8"
 require_once ('../../../Classes/lib/jpgraph-4.2.9/src/jpgraph.php');
 require_once ('../../../Classes/lib/jpgraph-4.2.9/src/jpgraph_pie.php');
+//require_once ('../../../Classes/lib/jpgraph/jpgraph_pie3d.php');
 // Some data
 $data = array(40,21,17,14,23);
 

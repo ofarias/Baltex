@@ -184,7 +184,6 @@
                         }).fail(function(){
                             self.setContent('Algo ocurrio y no pude procesarlo, intente nuevamente.');
                             opc = <?php echo "'".$opc."'"?>;
-
                         });
                     }
             });

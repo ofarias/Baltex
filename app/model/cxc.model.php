@@ -1,7 +1,8 @@
 <?php
-require_once 'app/model/cxc.database.php';
+//require_once 'app/model/cxc.database.php';
+require_once ('database.php');
 
-class modelCxC extends databaseCxC{
+class modelCxC extends database{
 	
 	function sincParam(){
 		$data=array();
@@ -53,7 +54,42 @@ class modelCxC extends databaseCxC{
 		}
 	}
 
+	function kpiGrp($param){
+		//echo 'Estos son los parametros'.$param;
+		return array("status"=>'ok');
+	}
 
+	function kpi($fi, $ff, $anio){
+		$data=array(); $param='';
+    	for($i=1; $i < 3; $i++){
+			$_SESSION['emp']=$i;
+			$this->query="SELECT TIPO, MAX(RANGO) AS RANGO, SUM(SALDO) AS SALDO FROM SP_ANTIGUEDAD('$fi', '$ff') WHERE SALDO > 2 $param GROUP BY TIPO ";
+			//echo $this->query;
+			$res=$this->EjecutaQuerySimple();
+			while($tsArray=ibase_fetch_object($res)){
+				$data[]=$tsArray;
+			}
+		}
+		$A=0;$B=0;$C=0;$D=0;$E=0;$F=0;$total=0;
+		foreach($data as $d){
+			if($d->TIPO == 'A'){$A+=$d->SALDO; }
+			if($d->TIPO == 'B'){$B+=$d->SALDO; }
+			if($d->TIPO == 'C'){$C+=$d->SALDO; }
+			if($d->TIPO == 'D'){$D+=$d->SALDO; }
+			if($d->TIPO == 'E'){$E+=$d->SALDO; }
+			if($d->TIPO == 'F'){$F+=$d->SALDO; }
+			$total += $d->SALDO;
+		}
+		$datos=array(
+				'de 1 a 30 dias'=>$A,
+				'de 31 a 60 dias'=>$B,
+				'de 61 a 90 dias'=>$C,
+				'de 91 a 120 dias'=>$D,
+				'de 121 dias '=>$E,
+				'Corriente'=> $F
+			);
+		return array("datos"=>$datos, "fi"=>$fi, "ff"=>$ff);
+	}
 	
 }?>
 
