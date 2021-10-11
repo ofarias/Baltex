@@ -38,7 +38,7 @@
         $mail->Port = 587;
         $mail->SMTPAuth = true;
         $mail->Username   = "grupobaltex@gmail.com";  // Nombre del usuario SMTP
-        $mail->Password   = "baltex55883555";
+        $mail->Password   = "Baltex55883555";
         if(strpos($correo,",")){
             $correo = explode(",", $correo);
             for ($i=0; $i < count($correo) ; $i++) { 
