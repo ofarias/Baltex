@@ -10,21 +10,12 @@
 		private $host = "C:\\BD\\Baltex\\SAE70EMPRE01.FDB";
 		#Abre la conexión a la base de datos
 		private function AbreCnx(){
-
 			if($_SESSION['emp'] == 1){
-<<<<<<< HEAD
 				$host="C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
 				//$host="baltex.dyndns.org:C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
 			}elseif($_SESSION['emp'] == 2){
 				$host="C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa02\\Datos\\SAE70EMPRE02.FDB";
-				//$host="baltex.dyndns.org:C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa02\\Datos\\SAE70EMPRE02.FDB";
-=======
-				//$host="C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
-				$host="baltex2019.dyndns.org:C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
-			}elseif($_SESSION['emp'] == 2){
-				//$host="C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa02\\Datos\\SAE70EMPRE02.FDB";
-				$host="baltex2019.dyndns.org:C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa02\\Datos\\SAE70EMPRE02.FDB";
->>>>>>> 1483d1e1456de3754633e7b1a2eb5a046773e12d
+				//$host="baltex2019.dyndns.org:C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
 			}
 			$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
 		}		
