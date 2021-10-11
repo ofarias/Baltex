@@ -12,12 +12,13 @@ $data1 = array();  $data2=array(); $info_mensual1= array(); $info_mensual2= arra
 $usr = "SYSDBA";
 $pwd = "masterkey";
 
-if($t == 'd'){/// valor predeterminado sin filtros.
+if($t=='d'){/// valor predeterminado sin filtros.
     /// definimos la fecha inicial como 01 01 2000
     //$fi = '2007-07-01'; $ff= new DateTime('2021-09-15');
     //// definimos la fecha final como el ultimo dia del mes.
     //$ff = new DateTime();
-    $host="baltex2019.dyndns.org:C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
+    //$host="baltex2019.dyndns.org:C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
+    $host="C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
     $cnx=ibase_connect($host, $usr, $pwd);
     if(!$cnx){ echo 'Acceso denegado'; exit;}
         $query="SELECT * FROM FTC_GRAFICA1 where ff between '$fi' and '$ff'";

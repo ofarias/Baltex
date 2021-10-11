@@ -866,7 +866,6 @@ class pegaso extends database{
 	function kpi_h($opc, $fi, $ff){
 		$this->grafica2($opc, $fi, $ff);
 		return $this->grafica1($opc, $fi , $ff);
-
 		die;
 		$this->query="DELETE FROM GRP_VEN_PORCENTAJE WHERE ID IS NOT NULL";
 		$this->queryActualiza();
@@ -924,9 +923,9 @@ class pegaso extends database{
 	}
 
 	function grafica1($opc, $fi, $ff){
-		$this->query="DELETE FROM FTC_GRAFICA1 WHERE MES < 13";
-		$this->grabaBD();
 		if($opc=='a'){
+			$this->query="DELETE FROM FTC_GRAFICA1 WHERE MES < 13";
+			$this->grabaBD();
 			$fi = new DateTime('2007-07-01'); $ff= new DateTime('2021-10-1');
 			$intervalo = $ff->diff($fi);
 			$mes = $intervalo->format("%m");
@@ -1023,9 +1022,9 @@ class pegaso extends database{
 	
 	function grafica2($opc, $fi, $ff){
 		$_SESSION['emp']=1;
-		$this->query="DELETE FROM FTC_GRAFICA2 WHERE MES < 13";
-		$this->grabaBD();
-		if($opc=='b'){
+		if($opc=='a'){
+			$this->query="DELETE FROM FTC_GRAFICA2 WHERE MES < 13";
+			$this->grabaBD();
 			$fi = new DateTime('2007-07-01'); $ff= new DateTime('2021-10-01');
 			$intervalo = $ff->diff($fi);
 			$mes = $intervalo->format("%m");
@@ -1040,7 +1039,7 @@ class pegaso extends database{
 					$fecha = new DateTime($fn);
 					$ff = $fecha->format("Y-m-t"); 
 					###########
-					$this->query="SELECT mes, anio, tipo, rango_vencido, sum(saldo) as Total  from sp_antiguedad ('$fi', '$ff') where dias_vencido != 0 group by mes, anio, rango_vencido, tipo";
+					$this->query="SELECT mes, anio, tipo, RANGO_VENCIDO, sum(saldo) as Total  from sp_antiguedad ('$fi', '$ff') where dias_vencido != 0 group by mes, anio, RANGO_VENCIDO, tipo";
 					$res=$this->EjecutaQuerySimple();
 					while($tsArray=ibase_fetch_object($res)){
 						$data[]=$tsArray;
