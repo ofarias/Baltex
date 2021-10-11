@@ -383,7 +383,7 @@ class controllerCxC{
                 $ff = date("Y-m-d");
                 $anio = date("Y");
             }
-            $gen=$sae->kpi_h('a', $fi, $ff);
+            $gen=$sae->kpi_h('k', $fi, $ff);
             //$kpi=$sae->kpi($opc);
             //$info = $kpi['datos'];
             $info = $gen;
