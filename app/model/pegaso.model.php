@@ -651,5 +651,318 @@ class pegaso extends database{
     	return $data;
     }
 
+    function datos($ctrlFacF1, $ctrlFacF2,$ctrlFacD1,$ctrlFacD2){
+    	/// SE PUEDE UTILIZAR CVE_AUT O REF_SIST PARA CONTROLAR la sincronizacion.
+    	$cuenM=array();$cuenD=array();$facturas=array();$notas=array();$conceptos=array();$folio=array();
+    	$tablas=["cuenM"=>"CUEN_M0", "cuenD"=>"CUEN_DET0", "facturas"=>"FACTF0", "notas"=>"FACTD0", "conceptos"=>"CONM0"];
+    	foreach($tablas as $key => $value){
+    		$param='';$param2='';
+    		for ($i=1; $i <3 ; $i++) { 
+	    		switch ($value) {
+	    			case 'CUEN_M0':
+	    				$campo = 'CVE_AUT';
+	    				$param = ' where CVE_AUT IS NULL';
+	    				$param2 = ' where CVE_CLIE is not null ';
+	    				break;
+	    			case 'CUEN_DET0':
+	    				$campo = 'CTLPOL';
+	    				$param = ' where CTLPOL is null ';
+	    				$param2 = ' where CVE_CLIE is not null ';
+	    				break;
+	    			case 'FACTF0':
+	    				$campo = 'DAT_MOSTR';
+	    				$param = " where DAT_MOSTR > ".${"ctrlFacF".$i};
+	    				$param2 = ' where cve_clpv is not null';
+	    				break;
+	    			case 'FACTD0':
+	    				$campo = 'CVE_BITA';
+	    				$param = " where CVE_BITA > ".${"ctrlFacD".$i};
+	    				$param2 = ' where cve_clpv is not null ';
+	    				break;
+	    			case 'CONM0':
+	    				$campo = '';
+	    				$param = '';
+	    				break;
+	    			default:
+	    				// code...
+	    				break;
+	    		}
+	    		$_SESSION['emp']=$i;
+	    		$tabla = $value.$i;
+		    	$this->query="SELECT c.* FROM $tabla c  $param";
+			    $res=$this->EjecutaQuerySimple();
+		    	while($tsArray=ibase_fetch_object($res)){
+		    		$$key[]=$tsArray;
+		    	}
+		    	if(!empty($param2)){
+			    	$this->query="SELECT COALESCE(MAX($campo), 0) as f_sinc FROM $tabla $param2";
+			    	//echo '<br/>'.$this->query;
+			    	$res=$this->EjecutaQuerySimple();
+			    	$row=ibase_fetch_object($res);
+			    	$folio = $row->F_SINC;
+		    	}
+	    	}
+    	}
+    	return array("CuenM"=>$cuenM, "CuenD"=>$cuenD, "Facturas"=>$facturas, "Notas"=>$notas, "conceptos"=>$conceptos, "folios"=>$folio);
+    }
+
+    function clientes($opc){
+    	$data=array(); $param=''; 
+    	$opc = substr($opc, 1);
+    	@$opc = explode(":", $opc);
+    	if(count($opc)>1){
+    		if(!empty($opc[0])){ /// Cliente
+    			$param .= " and cliente = '".$opc[0]."'";
+    		}
+    		if(!empty($opc[1])){ /// Vendedor
+    			$param .= " and vendedor = '".$opc[1]."'";
+    		}
+    		if(!empty($opc[2])){ /// Fecha inicial
+    			$param .= " and fecha_doc >= '".$opc[2]."'";
+    		}
+    		if(!empty($opc[3])){ /// Fecha Final
+    			$param .= " and fecha_doc <= '".$opc[3]."'";
+    		}
+    		if($opc[4]!=3){ /// Empresa
+    			$param .= " and empresa = '".$opc[4]."'";
+    		}
+    	}
+    	//echo $param;
+    	for ($i=1; $i <3 ; $i++) { 
+    		$_SESSION['emp']=$i;
+	    	//$tabla = $value.$i;
+	    	$this->query="SELECT ID_CLIENTE, MAX(CLIENTE) as cliente, sum(SALDO) as saldo, COUNT(DOCUMENTO) AS documentos, min(fecha_doc) as fmin, max(fecha_doc) as fmax, min(empresa) AS empresa, (select max(diascred) from clie0$i cl where cl.clave = id_cliente) as diascred, cast(list(DISTINCT vendedor) as varchar(500)) AS VENDEDOR FROM FACTURAS_SALDO where id_cliente is not null $param group BY ID_CLIENTE";
+    		$res=$this->EjecutaQuerySimple();
+    		while($tsArray=ibase_fetch_object($res)){
+    			$data[]=$tsArray;
+    		}
+    	}
+    	return $data;
+    }
+
+    function documentos($opc){
+    	$data=array();$param='';
+    	$opc = substr($opc, 1);
+    	if(!empty($opc)){
+		    $opc = explode(":", $opc);
+		    if(count($opc)>=4){
+		    	if(!empty($opc[0])){ $param .= " and cliente = '".$opc[0]."'";}///cliente
+		    	if(!empty($opc[1])){ $param .= " and vendedor = '".$opc[1]."'";}/// Vendedor
+		    	if(!empty($opc[2])){ $param .= " and fecha_ven  >= '".$opc[2]."'";}/// Fecha inicial
+		    	if(!empty($opc[3])){ $param .= " and fecha_ven <= '".$opc[3]."'";}/// Fecha Final
+		    	if($opc[4]!=3){ $param .= " and empresa = '".$opc[4]."'";}/// Empresa
+		    	if(isset($opc[5])){
+		    		$doctos='';
+		    		$docs = explode(",",$opc[5]);
+		    		for ($i=0; $i < count($docs) ; $i++) { 
+		    			$doctos .= "'".$docs[$i]."', ";
+		    		}
+		    		$doctos = substr($doctos, 0, strlen($doctos)-2);
+		    		$param = " and documento in (".$doctos.")";
+		    	}
+		    }elseif(count($opc)==1){
+		    	$doctos='';
+		    	$docs = explode(",",$opc[0]);
+		    	for ($i=0; $i < count($docs) ; $i++) { 
+		    		$doctos .= "'".$docs[$i]."', ";
+		    	}
+		    	$doctos = substr($doctos, 0, strlen($doctos)-2);
+		    	$param = " and documento in (".$doctos.")";
+		    }
+    	}
+    	for ($i=1; $i <3 ; $i++) { 
+    		$_SESSION['emp']=$i;
+	    	$this->query="SELECT * FROM FACTURAS_PENDIENTES WHERE SALDO >= 2 AND STATUS != 'C' $param";
+    		$res=$this->EjecutaQuerySimple();
+    		while($tsArray=ibase_fetch_object($res)){
+    			$data[]=$tsArray;
+    		}
+    	}
+    	return $data;	
+    }
+
+    function clientesAuto($cliente){
+    	$res=array();
+    	for ($i=1; $i <3 ; $i++) { 
+    		$_SESSION['emp']=$i;
+	        $this->query = "SELECT CLIENTE, ID_CLIENTE FROM FACTURAS_SALDO 
+	                        WHERE (CLIENTE||' '|| ID_CLIENTE) CONTAINING '$cliente' group by CLIENTE, ID_CLIENTE";
+	        $result = $this->devuelveAutoClie();
+	        while($tsArray=ibase_fetch_object($result)){
+	        	$res[]=utf8_decode($tsArray->CLIENTE);
+	        }
+	    }
+        return $res;
+    }
+
+	function vendedoresAuto($vendedor){
+		$res=array();
+		for ($i=1; $i <3 ; $i++) { 
+    		$_SESSION['emp']=$i;
+	        $this->query = "SELECT ID_VENDEDOR, vendedor FROM FACTURAS_SALDO 
+	                        WHERE (VENDEDOR||' '|| ID_VENDEDOR ) CONTAINING '$vendedor' group by ID_VENDEDOR, VENDEDOR";
+	        $result = $this->devuelveAutoVend();
+	        while($tsArray=ibase_fetch_object($result)){
+	        	$res[]=$tsArray->VENDEDOR;
+	        }
+	    }
+        return $res;
+    }
+
+	function kpi($opc){
+		$data=array(); $param='';
+		$opc = substr($opc, 1);
+    	@$opc = explode(":", $opc);
+    	if(count($opc)>1){
+    		if(!empty($opc[0])){ $param .= " and cliente = '".$opc[0]."'";}///cliente
+    		if(!empty($opc[1])){ $param .= " and vendedor = '".$opc[1]."'";}/// Vendedor
+    		if(!empty($opc[2])){ $param .= " and fecha_ven  >= '".$opc[2]."'";}/// Fecha inicial
+    		if(!empty($opc[3])){ $param .= " and fecha_ven <= '".$opc[3]."'";}/// Fecha Final
+    		if($opc[4]!=3){ $param .= " and empresa = '".$opc[4]."'";}/// Empresa
+    		if(isset($opc[5])){
+    			$doctos='';
+    			$docs = explode(",",$opc[5]);
+    			print_r($docs);
+    			for ($i=0; $i < count($docs) ; $i++) { 
+    				$doctos .= "'".$docs[$i]."', ";
+    			}
+    			$doctos = substr($doctos, 0, strlen($doctos)-2);
+    			$param = " and documento in (".$doctos.")";
+    		}
+    	}else{
+			$fi = '01.01.2000';
+			$ff = date("d.m.Y");
+		}
+		for($i=1; $i < 3; $i++){
+			$_SESSION['emp']=$i;
+			$this->query="SELECT TIPO, MAX(RANGO) AS RANGO, SUM(SALDO) AS SALDO FROM SP_ANTIGUEDAD('$fi', '$ff') WHERE SALDO > 2 $param GROUP BY TIPO ";
+			$res=$this->EjecutaQuerySimple();
+			while($tsArray=ibase_fetch_object($res)){
+				$data[]=$tsArray;
+			}
+		}
+		
+		$A=0;$B=0;$C=0;$D=0;$E=0;$F=0;$total=0;
+		foreach($data as $d){
+			if($d->TIPO == 'A'){$A+=$d->SALDO; }
+			if($d->TIPO == 'B'){$B+=$d->SALDO; }
+			if($d->TIPO == 'C'){$C+=$d->SALDO; }
+			if($d->TIPO == 'D'){$D+=$d->SALDO; }
+			if($d->TIPO == 'E'){$E+=$d->SALDO; }
+			if($d->TIPO == 'F'){$F+=$d->SALDO; }
+			$total += $d->SALDO;
+		}
+		$datos=array(
+				'de 1 a 30 dias'=>$A,
+				'de 31 a 60 dias'=>$B,
+				'de 61 a 90 dias'=>$C,
+				'de 91 a 120 dias'=>$D,
+				'de 121 dias '=>$E,
+				'Corriente'=> $F
+			);
+		return array("datos"=>$datos, "fi"=>$fi, "ff"=>$ff);
+	}
+
+	function kpi_h(){
+		$this->grafica1();
+		die;
+		$this->query="DELETE FROM GRP_VEN_PORCENTAJE WHERE ID IS NOT NULL";
+		$this->queryActualiza();
+		$fi= '01.07.2007';
+		$ff= date("d.m.Y");
+		$anio_i = 2007;
+		$anio_f = date("Y");
+		$m_f = date("n");
+		$anios = ($anio_f - $anio_i)+1 ; 
+		$ctr=0; $sta='A';
+		echo 'Anios:'.$anios;
+		for($i=1; $i<= $anios; $i++){
+			for($m=1;$m < 13; $m++){/// control de meses
+				$ctr++;
+				if($m == $m_f and $anio_i == $anio_f){
+					$sta='P';
+				}elseif($m > $m_f and $anio_i==$anio_f){
+					break;
+				}
+					for($e=1; $e<3; $e++){/// control de empresa
+							$data=array();
+							$fecha='01.'.$m.'.'.$anio_i;
+							$fin= new DateTime($fecha);
+							$fin->modify('last day of this month');
+							$f_f= $fin->format('d.m.Y');
+							$_SESSION['emp']=$e;
+							$this->query="SELECT coalesce(sum(iif(dias_vencido <= -30,saldo, 0 )),0) as corriente,
+						coalesce (sum(iif(dias_vencido >= -31,saldo, 0 )),0) as vencido
+						from sp_antiguedad('$fi', '$f_f') WHERE SALDO >2";
+						$res=$this->EjecutaQuerySimple();
+						while($tsArray=ibase_fetch_object($res)){
+							$data[]=$tsArray;
+						}
+						if(count($data)>0){
+							// inserta en la tabla GRP_VEN_PORCENTAJE
+							$_SESSION['emp']=1;
+							foreach ($data as $key){
+								$total = $key->CORRIENTE + $key->VENCIDO;
+								$por_c = $key->CORRIENTE==0? 0:($key->CORRIENTE/$total)*100;
+								$por_v = $key->VENCIDO==0? 0:($key->VENCIDO/$total)*100;
+								if($total > 0){
+									$this->query="INSERT INTO GRP_VEN_PORCENTAJE (ID, MES, ANIO, CORRIENTE, VENCIDO, TOTAL, POR_C, POR_V, FECHA_CALCULO, STATUS, empresa) 
+													VALUES (NULL, $m, $anio_i, $key->CORRIENTE, $key->VENCIDO, $total, $por_c, $por_v, current_timestamp,'A', $e)";
+									$this->grabaBD();
+								}
+							}
+							unset($data);
+						}
+					}	
+				
+			}
+			$anio_i++ ; ///esto va hasta abajo.
+		}
+		die('Revision de datos');
+	}
+
+	function grafica1(){
+		$fi = new DateTime('2007-07-01'); $ff= new DateTime('2021-09-15');
+		$intervalo = $ff->diff($fi);
+		$mes = $intervalo->format("%m");
+		$anios = $intervalo->format("%y")*12;
+		$meses = $mes + $anios;
+		$aa=2007; $ma=7;
+		for ($i=0; $i <= $meses; $i++) {
+			$fi="2007-07-01";
+			$fn="$aa-$ma-1";
+			$fecha = new DateTime($fn);
+			$ff = $fecha->format("Y-m-t"); 
+			###########
+			$this->query="SELECT mes, anio, saldo, cobranza from sp_antiguedad ('$fi', '$ff')";
+			$res=$this->EjecutaQuerySimple();
+			while($tsArray=ibase_fetch_object($res)){
+				$data[]=$tsArray;
+			}
+			$corriente=0; $vencido=0;
+			foreach($data as $d){
+				if($d->COBRANZA == 'corriente'){
+					$corriente=$corriente+$d->SALDO;
+				}else{
+					$vencido=$vencido+$d->SALDO;
+				}
+			}	
+			$this->query="INSERT INTO FTC_GRAFICA1 (MES, ANIO, CORRIENTE, VENCIDO, FI, FF) VALUES ($d->MES, $d->ANIO, $corriente, $vencido, '$fi', '$ff')";
+			$this->grabaBD();
+			unset($data);
+			############
+			$ma=$ma+1;
+			if($ma>12 and $i>0){ /// vamos recorriendo el año cada 12 meses;
+				$aa=$aa+1;
+				$ma=1;
+			}
+		}
+		die;
+		
+	}
+
+	function grafica2(){
+
+	}
 
 }?>

@@ -11,9 +11,11 @@
 		#Abre la conexión a la base de datos
 		private function AbreCnx(){
 			if($_SESSION['emp'] == 1){
-				$host="C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
+				//$host="C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
+				$host="baltex.dyndns.org:C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
 			}elseif($_SESSION['emp'] == 2){
-				$host="C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa02\\Datos\\SAE70EMPRE02.FDB";
+				//$host="C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa02\\Datos\\SAE70EMPRE02.FDB";
+				$host="baltex.dyndns.org:C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa02\\Datos\\SAE70EMPRE02.FDB";
 			}
 			$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
 		}		
@@ -25,10 +27,6 @@
 		protected function EjecutaQuerySimple(){
 			$this->AbreCnx();
 			$rs = ibase_query($this->cnx, $this->query);
-			//print_r($rs);
-			//echo $this->query;
-			//$rows =ibase_affected_rows();
-			//echo 'Numero de lineas afctadas: '.$rows.'<br/>';
 			return $rs;
 			unset($this->query);
 			$this->CierraCnx();
@@ -71,11 +69,8 @@
 		
 		protected function QueryObtieneDatosN(){
 			$this->AbreCnx();
-			//echo $this->query;
 			$rs = ibase_query($this->cnx, $this->query);
 			return $rs;
-			//var_dump($rs);	
-			//echo $this->query;	
 			unset($this->query);	
 			$this->CierraCnx();
 		}
@@ -137,6 +132,22 @@
 			unset($this->query);	
 			$this->CierraCnx();
 		}		
+
+		protected function devuelveAutoClie(){
+			$this->AbreCnx();
+			$rs = ibase_query($this->cnx, $this->query);
+			$this->CierraCnx();
+			unset($this->query);	
+			return $rs;		
+		}
+
+		protected function devuelveAutoVend(){
+			$this->AbreCnx();
+			$rs = ibase_query($this->cnx, $this->query);
+			unset($this->query);	
+			$this->CierraCnx();
+			return $rs;
+		}
 	
 		#Regresa arreglo de datos asociativo, para mejor manejo de la informacion
 		#Comprueba si es un recurso el cual se compone de 

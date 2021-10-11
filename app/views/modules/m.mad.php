@@ -33,6 +33,16 @@
                     </div>
                 </div>
         </div>
+        <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <center><h4>Cuentas por Cobrar</h4></center>
+                    </div>
+                    <div class="panel-body">
+                        <center><a href="index.cxc.php?action=menuCxC" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                    </div>
+                </div>
+        </div>
     </div>
 </div>
     
