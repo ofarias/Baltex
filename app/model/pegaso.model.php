@@ -863,8 +863,10 @@ class pegaso extends database{
 		return array("datos"=>$datos, "fi"=>$fi, "ff"=>$ff);
 	}
 
-	function kpi_h(){
-		$this->grafica1();
+	function kpi_h($opc, $fi, $ff){
+		$this->grafica2($opc, $fi, $ff);
+		return $this->grafica1($opc, $fi , $ff);
+
 		die;
 		$this->query="DELETE FROM GRP_VEN_PORCENTAJE WHERE ID IS NOT NULL";
 		$this->queryActualiza();
@@ -921,48 +923,162 @@ class pegaso extends database{
 		die('Revision de datos');
 	}
 
-	function grafica1(){
-		$fi = new DateTime('2007-07-01'); $ff= new DateTime('2021-09-15');
-		$intervalo = $ff->diff($fi);
-		$mes = $intervalo->format("%m");
-		$anios = $intervalo->format("%y")*12;
-		$meses = $mes + $anios;
-		$aa=2007; $ma=7;
-		for ($i=0; $i <= $meses; $i++) {
-			$fi="2007-07-01";
-			$fn="$aa-$ma-1";
-			$fecha = new DateTime($fn);
-			$ff = $fecha->format("Y-m-t"); 
-			###########
-			$this->query="SELECT mes, anio, saldo, cobranza from sp_antiguedad ('$fi', '$ff')";
-			$res=$this->EjecutaQuerySimple();
-			while($tsArray=ibase_fetch_object($res)){
-				$data[]=$tsArray;
-			}
-			$corriente=0; $vencido=0;
-			foreach($data as $d){
-				if($d->COBRANZA == 'corriente'){
-					$corriente=$corriente+$d->SALDO;
-				}else{
-					$vencido=$vencido+$d->SALDO;
+	function grafica1($opc, $fi, $ff){
+		$this->query="DELETE FROM FTC_GRAFICA1 WHERE MES < 13";
+		$this->grabaBD();
+		if($opc=='a'){
+			$fi = new DateTime('2007-07-01'); $ff= new DateTime('2021-10-1');
+			$intervalo = $ff->diff($fi);
+			$mes = $intervalo->format("%m");
+			$anios = $intervalo->format("%y")*12;
+			$meses = $mes + $anios;
+			for($e=1; $e <=2; $e++ ){
+				$aa=2007; $ma=7;
+				$emp=($_SESSION['emp']=$e);
+				for ($i=0; $i <= $meses; $i++) {
+					$fi="2007-07-01";
+					$fn="$aa-$ma-1";
+					$fecha = new DateTime($fn);
+					$ff = $fecha->format("Y-m-t"); 
+					###########
+					$this->query="SELECT mes, anio, saldo, cobranza from sp_antiguedad ('$fi', '$ff')";
+					$res=$this->EjecutaQuerySimple();
+					while($tsArray=ibase_fetch_object($res)){
+						$data[]=$tsArray;
+					}
+					$corriente=0; $vencido=0;$total=0; $pc=0; $pv=0;
+					if(!empty($data)){
+						foreach($data as $d){
+							if($d->COBRANZA == 'corriente'){
+								$corriente=$corriente+$d->SALDO;
+							}else{
+								$vencido=$vencido+$d->SALDO;
+							}
+						}	
+						$vencido = $vencido==0? 1:$vencido;
+						$_SESSION['emp']=1;
+						$total = $corriente+ $vencido; $pc=($corriente/$total) * 100; $pv=($vencido / $total)*100;
+						$nombre = $this->traeMes($d->MES);$nom=substr($nombre,0,3);$an=substr($d->ANIO, 1);
+						$this->query="INSERT INTO FTC_GRAFICA1 (MES, ANIO, CORRIENTE, VENCIDO, FI, FF, EMP, TOTAL_DOC, POR_CORRIENTE, POR_VENCIDO, NOM, NOMBRE, AN) 
+									VALUES ($d->MES, $d->ANIO, $corriente, $vencido, '$fi', '$ff', $emp, $total, $pc, $pv, '$nom', '$nombre', $an)";
+						$this->grabaBD();
+						$_SESSION['emp']=$e;
+					}
+					unset($data);
+					############
+					$ma=$ma+1;
+					if($ma>12 and $i>0){ /// vamos recorriendo el año cada 12 meses;
+						$aa=$aa+1;
+						$ma=1;
+					}
 				}
-			}	
-			$this->query="INSERT INTO FTC_GRAFICA1 (MES, ANIO, CORRIENTE, VENCIDO, FI, FF) VALUES ($d->MES, $d->ANIO, $corriente, $vencido, '$fi', '$ff')";
-			$this->grabaBD();
-			unset($data);
-			############
-			$ma=$ma+1;
-			if($ma>12 and $i>0){ /// vamos recorriendo el año cada 12 meses;
-				$aa=$aa+1;
-				$ma=1;
 			}
 		}
-		die;
-		
+		return;
 	}
+		
+	function traeMes($num){
+		switch ($num) {
+			case '1':
+				return 'Enero';
+				break;
+			case '2':
+				return 'Febrero';
+				break;
+			case '3':
+				return 'Marzo';
+				break;
+			case '4':
+				return 'Abril';
+				break;
+			case '5':
+				return 'Mayo';
+				break;
+			case '6':
+				return 'Junio';
+				break;
+			case '7':
+				return 'Julio';
+				break;
+			case '8':
+				return 'Agosto';
+				break;
+			case '9':
+				return 'Septiembre';
+				break;
+			case '10':
+				return 'Octubre';
+				break;
+			case '11':
+				return 'Noviembre';
+				break;
+			case '12':
+				return 'Diciembre';
+				break;	
+			default:
+				# code...
+				break;
+		}
+	}
+	
+	function grafica2($opc, $fi, $ff){
+		$_SESSION['emp']=1;
+		$this->query="DELETE FROM FTC_GRAFICA2 WHERE MES < 13";
+		$this->grabaBD();
+		if($opc=='b'){
+			$fi = new DateTime('2007-07-01'); $ff= new DateTime('2021-10-01');
+			$intervalo = $ff->diff($fi);
+			$mes = $intervalo->format("%m");
+			$anios = $intervalo->format("%y")*12;
+			$meses = $mes + $anios;
+			for($e=1; $e <=2; $e++ ){
+				$aa=2007; $ma=7;
+				$emp=($_SESSION['emp']=$e);
+				for ($i=0; $i <= $meses; $i++) {
+					$fi="2007-07-01";
+					$fn="$aa-$ma-1";
+					$fecha = new DateTime($fn);
+					$ff = $fecha->format("Y-m-t"); 
+					###########
+					$this->query="SELECT mes, anio, tipo, rango_vencido, sum(saldo) as Total  from sp_antiguedad ('$fi', '$ff') where dias_vencido != 0 group by mes, anio, rango_vencido, tipo";
+					$res=$this->EjecutaQuerySimple();
+					while($tsArray=ibase_fetch_object($res)){
+						$data[]=$tsArray;
+					}
+					$corriente=0; $vencido=0;$total=0; $pc=0; $pv=0;
+					if(!empty($data)){
+						
+						foreach($data as $d){
+						/*	if($d->COBRANZA == 'corriente'){
+								$corriente=$corriente+$d->SALDO;
+							}else{
+								$vencido=$vencido+$d->SALDO;
+							}
+							*/	
+						}
+						///$vencido = $vencido==0? 1:$vencido;
+						$_SESSION['emp']=1;
+						$nombre = $this->traeMes($d->MES);$nom=substr($nombre,0,3);$an=substr($d->ANIO, 1);
+						$this->query="INSERT INTO FTC_GRAFICA2 (MES, ANIO, TIPO, DESCRIPCION, FI, FF, EMP, TOTAL, PORCENTAJE, NOM, NOMBRE, AN) 
+									VALUES ($d->MES, $d->ANIO, '$d->TIPO', '$d->RANGO_VENCIDO', '$fi', '$ff', $emp, $d->TOTAL, 0, '$nom', '$nombre', $an)";
+						//echo $this->query;
+						$this->grabaBD();
+						$_SESSION['emp']=$e;
+					}
+					unset($data);
+					############
+					$ma=$ma+1;
+					if($ma>12 and $i>0){ /// vamos recorriendo el año cada 12 meses;
+						$aa=$aa+1;
+						$ma=1;
+					}
 
-	function grafica2(){
+					//if($i == 7){break;}
 
+				}
+			}
+		}
+		return;
 	}
 
 }?>
