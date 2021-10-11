@@ -379,13 +379,14 @@ class controllerCxC{
                 $ff = date("d.m.Y");
                 $anio = date("Y");
             }else{
-                $fi = '01.01.2000';
-                $ff = date("d.m.Y");
+                $fi = date("Y-m-d", strtotime(date("Y-m-d")."- 2 years"));
+                $ff = date("Y-m-d");
                 $anio = date("Y");
             }
-            $gen=$sae->kpi_h();
-            $kpi=$sae->kpi($opc);
-            $info = $kpi['datos'];
+            $gen=$sae->kpi_h('b', $fi, $ff);
+            //$kpi=$sae->kpi($opc);
+            //$info = $kpi['datos'];
+            $info = $gen;
             
             include 'app/views/pages/CxC/p.kpiCxC.php';
 			$table=ob_get_clean();
